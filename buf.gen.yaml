@@ -1,0 +1,23 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/cvcio/mediawatch/pkg
+  disable:
+    - module: buf.build/googleapis/googleapis
+    - module: buf.build/srikrsna/protoc-gen-gotag
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.34.2
+    out: pkg
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go:v1.5.1
+    out: pkg
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
+  - remote: buf.build/connectrpc/go:v1.16.2
+    out: pkg
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false

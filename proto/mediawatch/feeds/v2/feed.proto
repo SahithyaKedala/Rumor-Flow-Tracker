@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+package mediawatch.feeds.v2;
+
+// third party imports
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "tagger/tagger.proto";
+
+// mediawatch specific imports
+import "mediawatch/common/v2/common.proto";
+
+message FeedTest {
+    string title            = 1;
+    string body             = 2;
+    repeated string authors = 3;
+    repeated string tags    = 4;
+    string published_at     = 5;
+    string description      = 6;
+    string image            = 7;
+    string url              = 8;
+    string status           = 9;
+}
+
+// FeedStream Model
+message FeedStream {
+    // stream key to select, can be the twitter_id of the feed in case 
+    // stream type is STREAM_TYPE_TWITTER, otherwise an ATOM/RSS feed url. 
+    string stream_target = 1 [(tagger.tags) = "bson:\"stream_target,omitempty\""];
+    // stream type, can be other, twitter or rss
+    // currently only twitter is supported
+    mediawatch.common.v2.StreamType stream_type = 2 [(tagger.tags) = "bson:\"stream_type,omitempty\""];
+    // common status (see common.proto)
+    mediawatch.common.v2.Status stream_status = 3 [(tagger.tags) = "bson:\"stream_status,omitempty\""];
+    bool requires_proxy = 4 [(tagger.tags) = "bson:\"requires_proxy,omitempty\""];
+    // stream state
+    mediawatch.common.v2.State state = 5;
+}
+
+// FeedDOM Model
+message FeedDOM {
+    string dom_type = 1 [(tagger.tags) = "bson:\"dom_type,omitempty\""];
+    string api = 2;
+    string title = 3;
+    string excerpt = 4;
+    string body = 5;
+    string authors = 6;
+    string sources = 7;
+    string tags = 8;
+    string categories = 9;
+    string published_at = 10 [(tagger.tags) = "bson:\"published_at,omitempty\""];
+    string edited_at = 11 [(tagger.tags) = "bson:\"edited_at,omitempty\""];
+    string timezone_offset = 12 [(tagger.tags) = "bson:\"timezone_offset,omitempty\""];
+    string img = 13;
+}
+
+// FeedLocalization Model
+message FeedLocalization {
+    string country = 1;
+    mediawatch.common.v2.Locality locality = 2;
+    // Feed predefined language code in ISO 639-1 format
+    string lang = 3;
+    string region = 4;
+    string union = 5;
+}
+
+// FeedMeta Model
+message FeedMeta {    
+    // email (if provided)
+    string email = 1;
+
+    // as suggested by ioanna archontaki (phd@uoa)
+    // the purpose of these meta is to correlate feeds
+    // by their political context
+    mediawatch.common.v2.BusinessType business_type = 2 [(tagger.tags) = "bson:\"business_type,omitempty\""];
+    string business_owner = 3 [(tagger.tags) = "bson:\"business_owner,omitempty\""];
+    // if the business is registered or not in a 
+    // public business registry, association, etc.
+    bool business_registered = 4 [(tagger.tags) = "bson:\"business_registered,omitempty\""];
+    mediawatch.common.v2.ContentType content_type = 5 [(tagger.tags) = "bson:\"content_type,omitempty\""];
+    mediawatch.common.v2.PoliticalOrientation political_orientation = 6 [(tagger.tags) = "bson:\"political_orientation,omitempty\""];
+    string political_affiliation = 7 [(tagger.tags) = "bson:\"political_affiliation,omitempty\""];
+    mediawatch.common.v2.Tier tier = 8;
+    string registry_id = 9 [(tagger.tags) = "bson:\"registry_id,omitempty\""];
+}
+
+message Feed {
+    // UUID as a string
+    string id = 1 [(tagger.tags) = "bson:\"_id,omitempty\""];
+    // Feed creation datetime in RFC3339 format
+    google.protobuf.Timestamp created_at = 2 [(tagger.tags) = "bson:\"created_at,omitempty\""];
+    // Feed update datetime in RFC3339 format
+    google.protobuf.Timestamp updated_at = 3 [(tagger.tags) = "bson:\"updated_at,omitempty\""];
+    // Name of the feed
+    string name = 4;
+    // Twitter user_name of the feed (if appliccable)
+    string user_name = 5 [(tagger.tags) = "bson:\"user_name,omitempty\""];
+    // A small description of the feed
+    string description = 6;
+    // Twitter id_str of the feed (if appliccable)
+    string twitter_id = 7 [(tagger.tags) = "bson:\"twitter_id,omitempty\""];
+    // Twitter profile_image_url of the feed (if appliccable), or favicon url
+    string icon = 8;
+    // Base url of the feed, including trailing slash `/`
+    string url = 9;
+    // Base url of the feed, including trailing slash `/`
+    string hostname = 10;
+    // strem fields
+    FeedStream stream = 11;
+    // localization fields
+    FeedLocalization localization = 12;
+    // meta fields
+    FeedMeta meta = 13;
+    // dom fiedlds
+    FeedDOM dom = 14;
+    // testing data
+    FeedTest test = 15;
+};
+
+message FeedStreamList {
+    repeated string data = 1;
+}
+
+message FeedList {
+    repeated Feed data = 1;
+    mediawatch.common.v2.Pagination pagination = 2;
+}
+
+message FeedWithFields {
+    string id = 1;
+    google.protobuf.Struct meta = 2;
+}
+
+message QueryFeed {
+    string id = 1;
+
+    int32 limit = 2;
+    int32 offset = 3;
+
+    int32 sort_order = 4;
+    string sort_key = 5;
+
+    string country = 6;
+    string lang = 7;
+
+    mediawatch.common.v2.StreamType stream_type = 8;
+    mediawatch.common.v2.Status stream_status = 9;
+
+    string q = 10;
+    string user_name = 11;
+    string hostname = 12;
+}
+
+service FeedService {
+    // create a new feed
+    rpc CreateFeed (Feed) returns (Feed) {};
+    // get a single feed
+    rpc GetFeed (QueryFeed) returns (Feed) {};
+    // get list of feeds by query
+    rpc GetFeeds (QueryFeed) returns (FeedList) {};
+    // update a feed
+    rpc UpdateFeed (Feed) returns (mediawatch.common.v2.ResponseWithMessage) {};
+    // delete a feed
+    rpc DeleteFeed (Feed) returns (mediawatch.common.v2.ResponseWithMessage) {};
+    // get the stream list
+    rpc GetFeedsStreamList (QueryFeed) returns (FeedList) {};
+    // test the feed e2e
+    rpc TestFeed (Feed) returns (FeedTest) {};
+}

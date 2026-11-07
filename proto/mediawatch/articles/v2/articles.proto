@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package mediawatch.articles.v2;
+
+// third party imports
+import "google/protobuf/timestamp.proto";
+
+// mediawatch specific imports
+import "mediawatch/enrich/v2/enrich.proto";
+import "mediawatch/feeds/v2/feed.proto";
+import "mediawatch/common/v2/common.proto";
+
+// Content
+message Content {
+    string title = 1;
+    string excerpt = 2;
+    string image = 3;
+    string body = 4;
+
+    repeated string authors = 5;
+    repeated string sources = 6;
+    repeated string tags = 7;
+    repeated string categories = 8;
+    
+    string published_at = 9;
+    string edited_at = 10;
+};
+
+// Article
+message Article {
+    int64 uid = 1;
+    string doc_id = 2;
+    string lang = 3;
+    string hostname = 4;
+    string url = 5;
+    string feed_id = 6;
+    
+    Content content = 7;
+    mediawatch.enrich.v2.NLP nlp = 8;
+    mediawatch.feeds.v2.Feed feed = 9;
+    
+    string crawled_at = 10;
+    int64 rel_count = 11;
+    string screen_name = 12;
+};
+
+// QueryArticle
+message QueryArticle {
+    string index = 1;
+    string doc_id = 2;
+
+    string q = 3;
+    string title = 4;
+    string body = 5;
+    string tags = 6;
+    string keywords = 7;
+    string topics = 8;
+    string entities = 9;
+    string authors = 10;
+    string lang = 11;
+    string feeds = 12;
+    string hostnames = 13;
+    
+    bool count_cases = 14;
+    bool include_rels = 15;
+
+    int32 skip = 16;
+    int32 limit = 17;
+    bool scroll = 18;
+
+    mediawatch.common.v2.SortBy sort = 19;
+    mediawatch.common.v2.RangeBy range = 20;
+};
+
+// ArticlesResponse
+message ArticleList {
+    repeated Article data = 1;
+    mediawatch.common.v2.Pagination pagination = 2;
+};
+
+// ArticlesService
+service ArticlesService {
+    // GetArticle
+    rpc GetArticle(QueryArticle) returns (Article) {};
+
+    // GetArticles
+    rpc GetArticles(QueryArticle) returns (ArticleList) {};
+
+    // StreamArticles
+    rpc StreamArticles(QueryArticle) returns (stream ArticleList);
+
+    // StreamRelatedArticles
+    rpc StreamRelatedArticles(QueryArticle) returns (stream ArticleList);
+};

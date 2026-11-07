@@ -1,0 +1,13 @@
+{
+  "name": "mediawatch-backend",
+  "version": "2.0.0",
+  "description": "MediaWatch Core Intelligence & Ingestion API Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["mediawatch", "disinformation", "nlp", "fact-checking"],
+  "author": "MediaWatch Core Team",
+  "license": "MIT"
+}
+
